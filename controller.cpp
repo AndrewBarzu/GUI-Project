@@ -7,12 +7,14 @@
 #include "setDebugNew.h"
 #define new DEBUG_NEW
 
+using namespace std;
+
 /// adds a new tower. If no addition happened, it returns a 1, else a 0. Also, if the mode is wrong, it just returns with a 0
-void Controller::add(std::string location, std::string size, std::string auraLevel, std::string separateParts, std::string vision)
+void Controller::add(string location, string size, string auraLevel, string separateParts, string vision)
 {
 	if (mode != "A")
 		throw ModeException("Wrong mode!");
-	std::vector<std::string> params;
+	vector<string> params;
 	params.push_back(location);
 	params.push_back(size);
 	params.push_back(auraLevel);
@@ -26,30 +28,39 @@ void Controller::add(std::string location, std::string size, std::string auraLev
 	Tower tower(params);
 	Helper::tower_validator(tower);
 	repository->add(tower);
+	this->undoStack.push_back(make_unique<AddAction>(this->repository, tower));
+	this->redoStack.clear();
 }
 
 /// removes a tower. If no remove happened, it returns a 1, else a 0. Also, if the mode is wrong, it just returns with a 0
-void Controller::remove(std::string location)
+void Controller::remove(string location)
 {
 	if (mode != "A")
 		throw ModeException("Wrong mode!");
+	Tower tower = this->repository->search(location);
 	repository->remove(location);
+	bool removed = true;
 	try
 	{
 		this->saved->remove(location);
 	}
 	catch (const std::exception& e)
 	{
-		;
+		removed = false;
 	}
+	if (removed)
+		this->undoStack.push_back(make_unique<RemoveAction>(this->repository, tower, this->saved));
+	else
+		this->undoStack.push_back(make_unique<RemoveAction>(this->repository, tower));
+	this->redoStack.clear();
 }
 
 /// updates a tower. If no update happened, it returns a 1, else a 0. Also, if the mode is wrong, it just returns with a 0
-void Controller::update(std::string location, std::string size, std::string auraLevel, std::string separateParts, std::string vision)
+void Controller::update(string location, string size, string auraLevel, string separateParts, string vision)
 {
 	if (mode != "A")
 		throw ModeException("Wrong mode!");
-	std::vector<std::string> params;
+	vector<string> params;
 	params.push_back(location);
 	params.push_back(size);
 	params.push_back(auraLevel);
@@ -62,16 +73,22 @@ void Controller::update(std::string location, std::string size, std::string aura
 	params.push_back(vision);*/
 	Tower tower(params);
 	Helper::tower_validator(tower);
+	Tower oldTower = this->repository->search(location);
 	repository->update(tower);
+	bool updated = true;
 	try
 	{
 		this->saved->update(tower);
 	}
 	catch(const std::exception& e)
 	{
-		;
+		updated = false;
 	}
-	//std::replace_if(saved.begin(), saved.end(), [location](const Tower& t) { return t.get_location() == location; }, Tower(params));
+	if (updated)
+		this->undoStack.push_back(make_unique<UpdateAction>(this->repository, oldTower, tower, this->saved));
+	else
+		this->undoStack.push_back(make_unique<UpdateAction>(this->repository, oldTower, tower));
+	this->redoStack.clear();
 }
 
 /// changes the controller mode. If no change, then it returns a 1, else 0
@@ -94,24 +111,25 @@ std::string Controller::list(std::string size)
 	iterator = repository->begin();
 	if (size != "")
 	{
-		while (iterator.valid() && (*iterator).get_size() != this->sizeFilter)
+		while (iterator->valid() && iterator->getTower().get_size() != this->sizeFilter)
 		{
-			iterator++;
+			iterator->next();
 		}
 	}
-	if (iterator.valid())
-		return (*iterator).print();
+	if (iterator->valid())
+		return iterator->getTower().print();
 	else
-		return "";}
+		return "";
+}
 
 std::vector<Tower> Controller::print(std::string size) const
 {
 	std::vector<Tower> vect;
-	for (auto& tower = this->repository->begin(); tower != this->repository->end(); ++tower)
+	for (auto tower = this->repository->begin(); tower->valid(); tower->next())
 	{
-		if (size == "" || (*tower).get_size() == size)
+		if (size == "" || tower->getTower().get_size() == size)
 		{
-			vect.push_back(*tower);
+			vect.push_back(tower->getTower());
 		}
 	}
 	return vect;
@@ -119,29 +137,28 @@ std::vector<Tower> Controller::print(std::string size) const
 
 void Controller::save(std::string location)
 {
-	for (auto& iter = this->repository->begin(); iter.valid(); iter++)
+	Tower tower = this->repository->search(location);
+	if (tower.get_location() == location)
 	{
-		if ((*(iter)).get_location() == location)
+		try
 		{
-			try
-			{
-				saved->add(*iter);
-			}
-			catch (const std::exception& e)
-			{
-				;
-			}
-			return;
+			saved->add(tower);
+			this->undoStack.push_back(make_unique<AddAction>(this->saved, tower));
 		}
+		catch (const std::exception& e)
+		{
+			;
+		}
+		return;
 	}
 	throw std::exception("No tower at given location!");}
 
 std::vector<Tower> Controller::getSaved() const
 {
 	std::vector<Tower> vect;
-	for (auto& tower = this->saved->begin(); tower != this->saved->end(); ++tower)
+	for (auto tower = this->saved->begin(); tower->valid(); tower->next())
 	{
-		vect.push_back(*tower);
+		vect.push_back(tower->getTower());
 	}
 	return vect;
 }
@@ -151,31 +168,51 @@ std::vector<Tower> Controller::getSaved() const
 std::string Controller::next()
 {
 	if (mode != "B") throw ModeException("Wrong mode!");
-	if (this->sizeFilter == "" && iterator.valid())
+	if (this->sizeFilter == "" && iterator->valid())
 	{
-		iterator++;
+		iterator->next();
 	}
-	else if (this->sizeFilter != "" && iterator.valid())
+	else if (this->sizeFilter != "" && iterator->valid())
 	{
-		iterator++;
-		while (iterator.valid() && (*iterator).get_size() != this->sizeFilter)
+		iterator->next();
+		while (iterator->valid() && iterator->getTower().get_size() != this->sizeFilter)
 		{
-			iterator++;
+			iterator->next();
 		}
 	}
 
-	if (!iterator.valid())
+	if (!iterator->valid())
 	{
 		std::string res = this->list(this->sizeFilter);
 		return res;
 	}
-	return (*(this->iterator)).print();
+	return this->iterator->getTower().print();
 }
 
 /// Returns the current mode in which the controller operates
 std::string Controller::getMode()
 {
 	return this->mode;
+}
+
+void Controller::undo()
+{
+	if (this->undoStack.empty())
+		throw std::exception("No more undo's!");
+	auto action = move(this->undoStack.back());
+	this->undoStack.pop_back();
+	action->undoAction();
+	this->redoStack.push_back(move(action));
+}
+
+void Controller::redo()
+{
+	if (this->redoStack.empty())
+		throw std::exception("No more redo's!");
+	auto action = move(this->redoStack.back());
+	this->redoStack.pop_back();
+	action->doAction();
+	this->undoStack.push_back(move(action));
 }
 
 /// Saves the tower that is at the given location

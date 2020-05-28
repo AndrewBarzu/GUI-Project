@@ -6,8 +6,8 @@
 #include "setDebugNew.h"
 #define new DEBUG_NEW
 
-/// Adds a new tower to the repo
-/// Returns a 1 if the location is not unique (not a success), 0 otherwise
+using namespace std;
+
 
 Tower HTMLRepo::read_tower(std::istream& is)
 {
@@ -77,7 +77,7 @@ void HTMLRepo::write_to_file(const std::vector<Tower>& towers)
 	fs.close();
 }
 
-HTMLRepo::HTMLRepo(std::string filename): FileRepository(filename), first(*this), last(*this)
+HTMLRepo::HTMLRepo(std::string filename): FileRepository(filename)
 {
 	this->mySize = 0;
 	std::fstream is;
@@ -106,7 +106,7 @@ HTMLRepo::HTMLRepo(std::string filename): FileRepository(filename), first(*this)
 		is.close();
 	}
 	else
-		for (auto iter = this->begin(); iter.valid(); iter++)
+		for (auto iter = this->begin(); iter->valid(); iter->next())
 		{
 			this->mySize += 1;
 		}
@@ -229,30 +229,36 @@ void HTMLRepo::update(const Tower& tower)
 	}*/
 }
 
+Tower HTMLRepo::search(const std::string& location) const
+{
+	for (auto it = this->begin(); it->valid(); it->next())
+		if (it->getTower().get_location() == location)
+			return it->getTower();
+	return Tower();
+}
+
 /// Returns the size of the repo
 int HTMLRepo::size() const
 {
 	return this->mySize;
 }
 
-typename HTMLRepo::iterator& HTMLRepo::begin()
+unique_ptr<RepoInterface::IteratorInterface> HTMLRepo::begin() const
 {
 	// TODO: insert return statement here
 	//this->first = iterator(elements.begin(), *this);
-	this->first = iterator(this->filename, *this);
-	return this->first;
+	return make_unique<HTMLIterator>(this, this->filename);
 }
 
-typename HTMLRepo::iterator& HTMLRepo::end()
+unique_ptr<RepoInterface::IteratorInterface> HTMLRepo::end() const
 {
 	// TODO: insert return statement here
 	//this->last = iterator(elements.end(), *this);
-	this->last = iterator(this->filename, *this, "last");
-	return this->last;
+	return make_unique<HTMLIterator>(this, this->filename, "last");
 }
 
 
-HTMLRepo::iterator::iterator(std::string filename, HTMLRepo& container,std::string pos): repo{ container }
+HTMLRepo::HTMLIterator::HTMLIterator(const HTMLRepo* container, std::string filename, std::string pos): IteratorInterface{ container }
 {
 	this->filename = filename;
 	if (pos == "first")
@@ -269,44 +275,70 @@ HTMLRepo::iterator::iterator(std::string filename, HTMLRepo& container,std::stri
 		std::getline(is, line);
 		if (line == "<tr>")
 		{
-			readTower = this->repo.read_tower(is);
-			this->current_tower = readTower;
+			readTower = ((HTMLRepo*)this->container)->read_tower(is);
+			this->currentTower = readTower;
 		}
 		else
 		{
-			this->current_tower = Tower();
+			this->currentTower = Tower();
 		}
 		is.close();
 	}
 	else
 	{
-		this->current_tower = Tower();
+		this->currentTower = Tower();
 	}
 }
 
-const Tower& HTMLRepo::iterator::operator*() const
+//HTMLRepo::HTMLIterator::HTMLIterator(const unique_ptr<IteratorInterface> other): IteratorInterface{other->container}
+//{
+//	this->currentTower = other.currentTower;
+//	this->filename = other.filename;
+//}
+
+void HTMLRepo::HTMLIterator::first()
+{
+	std::ifstream is;
+	std::string line;
+	Tower readTower;
+	is.open(filename);
+	for (int i = 0; i < 14; i++)
+	{
+		std::getline(is, line);
+	}
+	std::getline(is, line);
+	if (line == "<tr>")
+	{
+		readTower = ((HTMLRepo*)this->container)->read_tower(is);
+		this->currentTower = readTower;
+	}
+	else
+	{
+		this->currentTower = Tower();
+	}
+	is.close();
+}
+
+const Tower& HTMLRepo::HTMLIterator::getTower() const
 {
 	// TODO: insert return statement here
-	return this->current_tower;
+	return this->currentTower;
 }
 
-bool HTMLRepo::iterator::operator!=(const RepoInterface::iterator& it) const
+bool HTMLRepo::HTMLIterator::Equals(const unique_ptr<RepoInterface::IteratorInterface> it) const
 {
-	HTMLRepo::iterator& iter = dynamic_cast<HTMLRepo::iterator&>(const_cast<RepoInterface::iterator&>(it));
-	return this->current_tower != iter.current_tower;
+	auto ptr = dynamic_cast<HTMLRepo::HTMLIterator*>(it.get());
+	if (ptr == nullptr)
+		return false;
+	return this->currentTower == it->getTower();
 }
 
-bool HTMLRepo::iterator::operator!=(const iterator it) const
+bool HTMLRepo::HTMLIterator::valid() const
 {
-	return this->current_tower != it.current_tower;
+	return this->currentTower != Tower();
 }
 
-bool HTMLRepo::iterator::valid() const
-{
-	return this->current_tower != Tower();
-}
-
-typename HTMLRepo::iterator& HTMLRepo::iterator::operator++()
+void HTMLRepo::HTMLIterator::next()
 {
 	// TODO: insert return statement here
 	std::ifstream is;
@@ -323,13 +355,13 @@ typename HTMLRepo::iterator& HTMLRepo::iterator::operator++()
 		std::getline(is, line);
 		if (line != "<tr>")
 			break;
-		temp = this->repo.read_tower(is);
-		if (temp == this->current_tower)
+		temp = ((HTMLRepo*)this->container)->read_tower(is);
+		if (temp == this->currentTower)
 		{
 			std::getline(is, line);
 			if (line == "<tr>")
 			{
-				temp = this->repo.read_tower(is);
+				temp = ((HTMLRepo*)this->container)->read_tower(is);
 			}
 			else
 				temp = Tower();
@@ -338,58 +370,5 @@ typename HTMLRepo::iterator& HTMLRepo::iterator::operator++()
 	}
 	is.close();
 
-	this->current_tower = temp;
-	return *this;
-}
-
-typename HTMLRepo::iterator& HTMLRepo::iterator::operator++(int c)
-{
-	// TODO: insert return statement here
-	auto aux = *this;
-
-	std::ifstream is;
-	is.open(filename, std::ios_base::in);
-	Tower temp;
-	bool eof = false;
-	std::string line;
-	for (int i = 0; i < 14; i++)
-	{
-		std::getline(is, line);
-	}
-	while (true)
-	{
-		std::getline(is, line);
-		if (line != "<tr>")
-			break;
-		temp = this->repo.read_tower(is);
-		if (temp == this->current_tower)
-		{
-			std::getline(is, line);
-			if (line == "<tr>")
-			{
-				temp = this->repo.read_tower(is);
-			}
-			else
-				temp = Tower();
-			break;
-		}
-	}
-	is.close();
-
-	this->current_tower = temp;
-	return aux;
-}
-
-HTMLRepo::iterator& HTMLRepo::iterator::operator=(const RepoInterface::iterator& it) {
-	HTMLRepo::iterator& iter = dynamic_cast<HTMLRepo::iterator&>(const_cast<RepoInterface::iterator&>(it));
-	this->current_tower = iter.current_tower;
-	this->filename = iter.filename;
-	return *this;
-}
-
-HTMLRepo::iterator& HTMLRepo::iterator::operator=(const iterator& it)
-{
-	this->filename = it.filename;
-	this->current_tower = it.current_tower;
-	return *this;
+	this->currentTower = temp;
 }

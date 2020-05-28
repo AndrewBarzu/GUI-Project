@@ -10,7 +10,7 @@ MyDatabase::iterator::iterator()
 	this->current = NULL;
 }
 
-MyDatabase::iterator::iterator(MyDatabase* db, std::string pos)
+MyDatabase::iterator::iterator(const MyDatabase* db, std::string pos)
 {
 	this->db = db;
 	int rc = NULL;

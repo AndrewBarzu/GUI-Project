@@ -23,11 +23,11 @@ public:
 	private:
 		sqlite3_stmt* current;
 		Tower currentTower;
-		MyDatabase* db;
+		const MyDatabase* db;
 
 	public:
 		iterator();
-		iterator(MyDatabase* db, std::string pos);
+		iterator(const MyDatabase* db, std::string pos);
 		iterator(const MyDatabase::iterator& it);
 		const Tower& operator*() const;
 		bool operator!=(const iterator& it) const;

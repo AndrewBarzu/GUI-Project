@@ -2,6 +2,8 @@
 #include "setDebugNew.h"
 #define new DEBUG_NEW
 
+using namespace std;
+
 void DBRepository::add(const Tower& tower)
 {
 	db.add(tower);
@@ -19,72 +21,66 @@ void DBRepository::update(const Tower& tower)
 	this->db.update(tower);
 }
 
+Tower DBRepository::search(const std::string& location) const
+{
+	for (auto it = this->begin(); it->valid(); it->next())
+		if (it->getTower().get_location() == location)
+			return it->getTower();
+	return Tower();
+}
+
 int DBRepository::size() const
 {
 	return this->mySize;
 }
 
-typename DBRepository::iterator& DBRepository::begin()
+std::unique_ptr<RepoInterface::IteratorInterface> DBRepository::begin() const
 {
-	this->first = DBRepository::iterator("first", *this);
-	return this->first;
+	return make_unique<DBIterator>("first", this);
 	// TODO: insert return statement here
 }
 
-typename DBRepository::iterator& DBRepository::end()
+std::unique_ptr<RepoInterface::IteratorInterface> DBRepository::end() const
 {
-	this->last = DBRepository::iterator("last", *this);
-	return this->last;
+	return make_unique<DBIterator>("last", this);
 	// TODO: insert return statement here
 }
 
-DBRepository::iterator::iterator(std::string pos, DBRepository& container) : repo{ container }
+DBRepository::DBIterator::DBIterator(std::string pos, const DBRepository* container) : IteratorInterface{ container }
 {
-	this->current = MyDatabase::iterator(&(this->repo.db), pos);
+	this->current = MyDatabase::iterator(&container->db, pos);
 }
 
-const Tower& DBRepository::iterator::operator*() const
+DBRepository::DBIterator::DBIterator(const DBIterator& other): IteratorInterface{container}
+{
+	this->current = other.current;
+}
+
+void DBRepository::DBIterator::first()
+{
+	this->current = MyDatabase::iterator(&((DBRepository*)this->container)->db, "first");
+}
+
+const Tower& DBRepository::DBIterator::getTower() const
 {
 	return *this->current;
 }
 
-DBRepository::iterator& DBRepository::iterator::operator++()
+void DBRepository::DBIterator::next()
 {
-	++this->current;
-	return *this;
+	if (!this->valid())
+		throw std::exception("Invalid next call");
+	this->current++;
 }
 
-DBRepository::iterator& DBRepository::iterator::operator++(int c)
+bool DBRepository::DBIterator::Equals(const std::unique_ptr<RepoInterface::IteratorInterface> it) const
 {
-	auto aux = *this;
-	++this->current;
-	return aux;
+	auto iter = dynamic_cast<DBRepository::DBIterator*>(const_cast<RepoInterface::IteratorInterface*>(it.get()));
+	return this->current != iter->current;
 }
 
-bool DBRepository::iterator::operator!=(const RepoInterface::iterator& it) const
-{
-	DBRepository::iterator& iter = dynamic_cast<DBRepository::iterator&>(const_cast<RepoInterface::iterator&>(it));
-	return this->current!= iter.current;
-}
 
-bool DBRepository::iterator::operator!=(const iterator it) const
-{
-	return this->current != it.current;
-}
-
-bool DBRepository::iterator::valid() const
+bool DBRepository::DBIterator::valid() const
 {
 	return this->current.valid();
-}
-
-DBRepository::iterator& DBRepository::iterator::operator=(const RepoInterface::iterator& it) {
-	DBRepository::iterator& iter = dynamic_cast<DBRepository::iterator&>(const_cast<RepoInterface::iterator&>(it));
-	this->current = iter.current;
-	return *this;
-}
-
-DBRepository::iterator& DBRepository::iterator::operator=(const iterator& it)
-{
-	this->current = it.current;
-	return *this;
 }

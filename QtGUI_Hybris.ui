@@ -47,7 +47,11 @@
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QLineEdit" name="locationLineEdit"/>
+             <widget class="QLineEdit" name="locationLineEdit">
+              <property name="focusPolicy">
+               <enum>Qt::StrongFocus</enum>
+              </property>
+             </widget>
             </item>
             <item row="1" column="0">
              <widget class="QLabel" name="label_3">
@@ -114,7 +118,21 @@
               </property>
              </widget>
             </item>
+            <item row="1" column="0">
+             <widget class="QPushButton" name="undoButton">
+              <property name="text">
+               <string>Undo</string>
+              </property>
+             </widget>
+            </item>
             <item row="1" column="1">
+             <widget class="QPushButton" name="redoButton">
+              <property name="text">
+               <string>Redo</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
              <widget class="QPushButton" name="filterButton">
               <property name="text">
                <string>Filter</string>

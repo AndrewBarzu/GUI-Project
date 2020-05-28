@@ -6,36 +6,33 @@ class TowerModel;
 class RepoInMemory: public RepoInterface
 {
 public:
-	class iterator : public RepoInterface::iterator
+	class InMemoryIterator : public RepoInterface::IteratorInterface
 	{
 	private:
-		std::vector<Tower>::iterator ptr;
-		std::vector<Tower>& repo;
+		std::vector<Tower>::const_iterator ptr;
 	public:
-		iterator(std::vector<Tower>::iterator ptr, RepoInMemory& container) : ptr{ ptr }, repo{ container.elements }{}
-		const Tower& operator*() const override;
-		bool operator!=(const RepoInterface::iterator& it) const override;
-		bool operator!=(const iterator it) const;
-		bool valid() const override;
-		iterator& operator=(const RepoInterface::iterator& it) override;
-		iterator& operator=(const iterator& it);
-		iterator& operator++() override;
-		iterator& operator++(int) override;
+		InMemoryIterator(const RepoInMemory* container, std::vector<Tower>::const_iterator ptr) : IteratorInterface{ container }, ptr{ ptr }{}
+		InMemoryIterator(const InMemoryIterator& other);
+		virtual void first() override;
+		virtual const Tower& getTower() const override;
+		virtual bool valid() const override;
+		virtual bool Equals(const std::unique_ptr<IteratorInterface> it) const override;
+		virtual void next() override;
+		~InMemoryIterator() {}
 	};
 private:
 	std::vector<Tower> elements;
-	iterator first;
-	iterator last;
 	friend class TowerModel;
 public:
 
-	RepoInMemory() : elements{ std::vector<Tower>() }, first{ iterator(elements.begin(), *this) }, last{ iterator(elements.end(), *this) } {}
+	RepoInMemory() : elements{ std::vector<Tower>() } {}
 	void add(const Tower& tower) override;
 	void remove(const std::string& location) override;
 	void update(const Tower& tower) override;
+	Tower search(const std::string& location) const override;
 	int size() const override;
-	typename iterator& begin();
-	typename iterator& end();
+	std::unique_ptr<IteratorInterface> begin() const override;
+	std::unique_ptr<IteratorInterface> end() const override;
 	~RepoInMemory() {};
 };
 

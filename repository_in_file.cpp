@@ -6,6 +6,8 @@
 #include "setDebugNew.h"
 #define new DEBUG_NEW
 
+using namespace std;
+
 /// Adds a new tower to the repo
 /// Returns a 1 if the location is not unique (not a success), 0 otherwise
 void FileRepository::add(const Tower& tower)
@@ -104,30 +106,37 @@ void FileRepository::update(const Tower& tower)
 	}*/
 }
 
+Tower FileRepository::search(const std::string& location) const
+{
+	for (auto it = this->begin(); it->valid(); it->next())
+		if (it->getTower().get_location() == location)
+			return it->getTower();
+	return Tower();
+}
+
 /// Returns the size of the repo
 int FileRepository::size() const
 {
 	return this->mySize;
 }
 
-typename FileRepository::iterator& FileRepository::begin()
+unique_ptr<RepoInterface::IteratorInterface> FileRepository::begin() const
 {
 	// TODO: insert return statement here
 	//this->first = iterator(elements.begin(), *this);
-	this->first = iterator(this->filename);
-	return this->first;
+	return make_unique<FileIterator>(this, this->filename);
 }
 
-typename FileRepository::iterator& FileRepository::end()
+unique_ptr<RepoInterface::IteratorInterface> FileRepository::end() const
 {
 	// TODO: insert return statement here
 	//this->last = iterator(elements.end(), *this);
-	this->last = iterator(this->filename, "last");
-	return this->last;
+	return make_unique<FileIterator>(this, this->filename, "last");
 }
 
 
-FileRepository::iterator::iterator(std::string filename, std::string pos)
+FileRepository::FileIterator::FileIterator(const FileRepository* container, std::string filename, std::string pos): 
+	IteratorInterface{ container }
 {
 	this->filename = filename;
 	if (pos == "first")
@@ -141,43 +150,66 @@ FileRepository::iterator::iterator(std::string filename, std::string pos)
 		is >> temp;
 		if (is.eof())
 		{
-			this->current_tower = Tower();
+			this->currentTower = Tower();
 		}
 		else
 		{
-			this->current_tower = temp;
+			this->currentTower = temp;
 		}
 		is.close();
 	}
 	else
 	{
-		this->current_tower = Tower();
+		this->currentTower = Tower();
 	}
 }
 
-const Tower& FileRepository::iterator::operator*() const
+FileRepository::FileIterator::FileIterator(const FileIterator& other): IteratorInterface{other.container}
+{
+	this->currentTower = other.currentTower;
+	this->filename = other.filename;
+}
+
+void FileRepository::FileIterator::first()
+{
+	std::ifstream is;
+	std::fstream fs;
+	fs.open(this->filename, std::ios::out | std::ios::app);
+	fs.close();
+	is.open(this->filename);
+	Tower temp;
+	is >> temp;
+	if (is.eof())
+	{
+		this->currentTower = Tower();
+	}
+	else
+	{
+		this->currentTower = temp;
+	}
+	is.close();
+}
+
+const Tower& FileRepository::FileIterator::getTower() const
 {
 	// TODO: insert return statement here
-	return this->current_tower;
+	return this->currentTower;
 }
 
-bool FileRepository::iterator::operator!=(const RepoInterface::iterator& it) const
+bool FileRepository::FileIterator::Equals(const unique_ptr<IteratorInterface> it) const
 {
-	FileRepository::iterator& iter = dynamic_cast<FileRepository::iterator&>(const_cast<RepoInterface::iterator&>(it));
-	return this->current_tower != iter.current_tower;
+	auto ptr = dynamic_cast<FileRepository::FileIterator*>(it.get());
+	if (ptr == nullptr)
+		return false;
+	return this->currentTower != it->getTower();
 }
 
-bool FileRepository::iterator::operator!=(const iterator it) const
+bool FileRepository::FileIterator::valid() const
 {
-	return this->current_tower != it.current_tower;
+	return this->currentTower != Tower();
 }
 
-bool FileRepository::iterator::valid() const
-{
-	return this->current_tower != Tower();
-}
-
-typename FileRepository::iterator& FileRepository::iterator::operator++()
+void FileRepository::FileIterator::next()
 {
 	// TODO: insert return statement here
 	std::ifstream is;
@@ -189,7 +221,7 @@ typename FileRepository::iterator& FileRepository::iterator::operator++()
 	bool eof = false;
 	while (!is.eof())
 	{
-		if (temp == this->current_tower)
+		if (temp == this->currentTower)
 			break;
 		is >> temp;
 		if (is.eof())
@@ -204,57 +236,8 @@ typename FileRepository::iterator& FileRepository::iterator::operator++()
 	is.close();
 	if (eof)
 	{
-		this->current_tower = Tower();
+		this->currentTower = Tower();
 	}
 	else
-		this->current_tower = temp;
-	return *this;
-}
-
-typename FileRepository::iterator& FileRepository::iterator::operator++(int c)
-{
-	auto aux = *this;
-	std::ifstream is;
-	std::fstream fs;
-	fs.open(this->filename, std::ios::out | std::ios::app);
-	fs.close();
-	is.open(filename, std::ios_base::in);
-	Tower temp;
-	bool eof = false;
-	while (!is.eof())
-	{
-		if (temp == this->current_tower)
-			break;
-		is >> temp;
-		if (is.eof())
-		{
-			eof = true;
-			break;
-		}
-	}
-	is >> temp;
-	if (is.eof())
-		eof = true;
-	is.close();
-	if (eof)
-	{
-		this->current_tower = Tower();
-	}
-	else
-		this->current_tower = temp;
-	return aux;
-}
-
-FileRepository::iterator& FileRepository::iterator::operator=(const RepoInterface::iterator& it) {
-	FileRepository::iterator& iter = dynamic_cast<FileRepository::iterator&>(const_cast<RepoInterface::iterator&>(it));
-	this->current_tower = iter.current_tower;
-	this->filename = iter.filename;
-	return *this;
-}
-
-FileRepository::iterator& FileRepository::iterator::operator=(const iterator& it)
-{
-	this->filename = it.filename;
-	this->current_tower = it.current_tower;
-	return *this;
+		this->currentTower = temp;
 }

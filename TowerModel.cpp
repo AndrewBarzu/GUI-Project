@@ -3,7 +3,7 @@
 
 int TowerModel::rowCount(const QModelIndex& parent) const
 {
-	return this->repo.size();
+	return this->controller.size();
 }
 
 int TowerModel::columnCount(const QModelIndex& parent) const
@@ -16,10 +16,10 @@ QVariant TowerModel::data(const QModelIndex& index, int role) const
 	int row = index.row();
 	int col = index.column();
 
-	if (row == this->repo.size())
+	if (row == this->controller.size())
 		return QVariant();
 
-	Tower t = this->repo.elements[row];
+	Tower t = this->controller.print()[row];
 
 	if (role == Qt::DisplayRole || role == Qt::EditRole)
 	{
@@ -71,15 +71,21 @@ bool TowerModel::removeRows(int position, int rows, const QModelIndex& parentInd
 	return true;
 }
 
+void TowerModel::update()
+{
+	emit layoutAboutToBeChanged();
+	emit layoutChanged();
+}
+
 void TowerModel::updateSlot(TowerModel::UpdateType type)
 {
 	switch (type)
 	{
 	case UpdateType::add:
-		this->insertRow(this->repo.size());
+		this->insertRow(this->controller.size());
 		break;
 	case UpdateType::remove:
-		this->removeRow(this->repo.size() - 1);
+		this->removeRow(this->controller.size() - 1);
 		break;
 	case UpdateType::update:
 		emit layoutAboutToBeChanged();

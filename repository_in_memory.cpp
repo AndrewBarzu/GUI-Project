@@ -6,16 +6,13 @@
 #include "setDebugNew.h"
 #define new DEBUG_NEW
 
+using namespace std;
+
 /// Adds a new tower to the repo
 /// Returns a 1 if the location is not unique (not a success), 0 otherwise
 void RepoInMemory::add(const Tower& tower)
 {
 	auto it = std::find_if(this->elements.begin(), this->elements.end(), [tower](const Tower& mytower) {return mytower.get_location() == tower.get_location(); });
-	/*for (auto& const it: this->elements)
-	{
-		if (it.get_location() == params[3])
-			return 1;
-	}*/
 	if (it != this->elements.end())
 		throw std::exception("Element already exists!");
 	elements.push_back(tower);
@@ -43,16 +40,15 @@ void RepoInMemory::update(const Tower& tower)
 		*it = tower;
 		return;
 	}
-	/*for (int i = 0; i < elements.size() && flag; i++)
-	{
-		if (strcmp(this->elements[i].get_location(), params[3]) == 0)
-		{
-			Tower new_tower = Tower(params);
-			elements[i] = new_tower;
-			return 0;
-		}
-	}*/
 	throw std::exception("Tried to update a non existing element!");}
+
+Tower RepoInMemory::search(const std::string& location) const
+{
+	for (auto& tower : this->elements)
+		if (tower.get_location() == location)
+			return tower;
+	return Tower();
+}
 
 /// Returns the size of the repo
 int RepoInMemory::size() const
@@ -60,69 +56,52 @@ int RepoInMemory::size() const
 	return elements.size();
 }
 
-typename RepoInMemory::iterator& RepoInMemory::begin()
+unique_ptr<RepoInterface::IteratorInterface> RepoInMemory::begin() const
 {
 	// TODO: insert return statement here
 	//this->first = iterator(elements.begin(), *this);
-	this->first = iterator(elements.begin(), *this);
-	return this->first;
+	return make_unique<InMemoryIterator>(this, this->elements.cbegin());
 }
 
-typename RepoInMemory::iterator& RepoInMemory::end()
+unique_ptr<RepoInterface::IteratorInterface> RepoInMemory::end() const
 {
 	// TODO: insert return statement here
 	//this->last = iterator(elements.end(), *this);
-	this->last = iterator(elements.end(), *this);
-	return this->last;
+	return make_unique<InMemoryIterator>(this, this->elements.cend());
 }
 
-const Tower& RepoInMemory::iterator::operator*() const
+RepoInMemory::InMemoryIterator::InMemoryIterator(const InMemoryIterator& other): IteratorInterface{other.container}
+{
+	this->ptr = other.ptr;
+}
+
+void RepoInMemory::InMemoryIterator::first()
+{
+	this->ptr = ((RepoInMemory*)this->container)->elements.begin();
+}
+
+const Tower& RepoInMemory::InMemoryIterator::getTower() const
 {
 	// TODO: insert return statement here
 	return *(this->ptr);
 }
 
-bool RepoInMemory::iterator::operator!=(const RepoInterface::iterator& it) const
+bool RepoInMemory::InMemoryIterator::Equals(const unique_ptr<RepoInterface::IteratorInterface> it) const
 {
-	RepoInMemory::iterator& iter = dynamic_cast<RepoInMemory::iterator&>(const_cast<RepoInterface::iterator&>(it));
-	return this->ptr != iter.ptr;
+	auto ptr = dynamic_cast<RepoInMemory::InMemoryIterator*>(it.get());
+	if (ptr == nullptr)
+		return false;
+	return this->getTower() != it->getTower();
 }
 
-bool RepoInMemory::iterator::operator!=(const iterator it) const
+bool RepoInMemory::InMemoryIterator::valid() const
 {
-	return this->ptr != it.ptr;
+	return this->ptr != ((RepoInMemory*)this->container)->elements.end();
 }
 
-bool RepoInMemory::iterator::valid() const
-{
-	return this->ptr != this->repo.end();
-}
-
-typename RepoInMemory::iterator& RepoInMemory::iterator::operator++()
+void RepoInMemory::InMemoryIterator::next()
 {
 	// TODO: insert return statement here
 	this->ptr++;
-	return *this;
 }
 
-typename RepoInMemory::iterator& RepoInMemory::iterator::operator++(int c)
-{
-	// TODO: insert return statement here
-	auto aux = *this;
-	this->ptr++;
-	return aux;
-}
-
-RepoInMemory::iterator& RepoInMemory::iterator::operator=(const RepoInterface::iterator& it) {
-	RepoInMemory::iterator& iter = dynamic_cast<RepoInMemory::iterator&>(const_cast<RepoInterface::iterator&>(it));
-	this->ptr = iter.ptr;
-	this->repo = iter.repo;
-	return *this;
-}
-
-RepoInMemory::iterator& RepoInMemory::iterator::operator=(const iterator& it)
-{
-	this->ptr = it.ptr;
-	this->repo = it.repo;
-	return *this;
-}

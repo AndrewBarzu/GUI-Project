@@ -2,6 +2,9 @@
 #include "repository_in_memory.h"
 #include "repository_in_file.h"
 #include <string>
+#include <vector>
+#include <memory>
+#include "Action.h"
 
 class ModeException : public std::exception
 {
@@ -14,13 +17,16 @@ class Controller
 {
 private:
 	RepoInterface* repository;
-	RepoInterface::iterator& iterator;
+	std::unique_ptr<RepoInterface::IteratorInterface> iterator;
 	std::string sizeFilter;
 	std::string mode;
 	RepoInterface* saved;
+	std::vector<std::unique_ptr<Action>> undoStack;
+	std::vector<std::unique_ptr<Action>> redoStack;
 
 public:
 	Controller(RepoInterface* repository, FileRepository* list) : mode{ 'A' }, iterator{ repository->begin() }, sizeFilter{ "" }, repository{ repository }, saved{ list }{}
+	Controller(const Controller& other): mode{other.mode}, iterator{other.repository->begin()}, sizeFilter{other.sizeFilter}, repository{other.repository}, saved{other.saved} {}
 	void add(std::string location, std::string size, std::string auraLevel, std::string separateParts, std::string vision);
 	void remove(std::string location);
 	void update(std::string location, std::string size, std::string auraLevel, std::string separateParts, std::string vision);
@@ -45,5 +51,7 @@ public:
 	std::vector<Tower> getSaved() const;
 	std::string next();
 	std::string getMode();
+	void undo();
+	void redo();
 };
 

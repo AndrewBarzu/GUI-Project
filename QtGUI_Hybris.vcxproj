@@ -82,6 +82,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Action.cpp" />
     <ClCompile Include="app.cpp" />
     <ClCompile Include="controller.cpp" />
     <ClCompile Include="DBRepository.cpp" />
@@ -107,6 +108,7 @@
     <QtRcc Include="QtGUI_Hybris.qrc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Action.h" />
     <ClInclude Include="controller.h" />
     <ClInclude Include="DBRepository.h" />
     <ClInclude Include="domain.h" />

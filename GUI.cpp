@@ -9,7 +9,7 @@ class TestWidget : public QDialog
 private:
 	QTableView* view;
 public:
-	TestWidget(QAbstractTableModel* model)
+	TestWidget(QAbstractTableModel* model, QWidget* parent = nullptr): QDialog{parent}
 	{
 		QHBoxLayout* layout = new QHBoxLayout(this);
 		this->view = new QTableView;
@@ -24,21 +24,25 @@ void QtGUI_Hybris::initGUI()
 
 	this->charter = new GUICharter();
 	this->ui.tabWidget->insertTab(1, charter, tr("Chart"));
-	auto elems = this->controller.print();
+	/*auto elems = this->controller.print();
 	for (auto t : elems)
 	{
 		this->repo.add(t);
-	}
-	this->model = new TowerModel(this->repo);
-	this->filter = new QSortFilterProxyModel();
-	this->filter->setSourceModel(model);
-	this->ui.towerTableView->setModel(filter);
+	}*/
+	this->model = new TowerModel(this->controller);
+	/*this->filter = new QSortFilterProxyModel();
+	this->filter->setSourceModel(model);*/
+	this->ui.towerTableView->setModel(model);
 	this->ui.towerTableView->verticalHeader()->hide();
 	this->ui.towerTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-	TestWidget* widget = new TestWidget(this->model);
+	TestWidget* widget = new TestWidget(this->model, this);
 	widget->show();
+	
+	this->undo = new QShortcut(QKeySequence(QKeySequence::Undo), this);
+	this->redo = new QShortcut(QKeySequence(QKeySequence::Redo), this);
 
 	this->connectSignalsAndSlots();
+	this->setFocusPolicy(Qt::ClickFocus);
 	emit populateTowerList("");
 	emit populateSavedList();
 }
@@ -53,11 +57,17 @@ void QtGUI_Hybris::connectSignalsAndSlots()
 	QObject::connect(this->ui.updateButton, &QPushButton::clicked, this, &QtGUI_Hybris::updateTowerHandler);
 	QObject::connect(this->ui.saveButton, &QPushButton::clicked, this, &QtGUI_Hybris::saveTowerHandler);
 	QObject::connect(this->ui.filterButton, &QPushButton::clicked, this, &QtGUI_Hybris::filterHandler);
+	QObject::connect(this->ui.undoButton, &QPushButton::clicked, this, &QtGUI_Hybris::undoHandler);
+	QObject::connect(this->ui.redoButton, &QPushButton::clicked, this, &QtGUI_Hybris::redoHandler);
+	QObject::connect(this->undo, &QShortcut::activated, this, &QtGUI_Hybris::undoHandler);
+	QObject::connect(this->redo, &QShortcut::activated, this, &QtGUI_Hybris::redoHandler);
 
 	QObject::connect(this->ui.tabWidget, &QTabWidget::currentChanged, this, &QtGUI_Hybris::changedTabHandler);
 
 	QObject::connect(this, SIGNAL(towerAddSignal(const std::string&, const std::string&, const std::string&, const std::string&, const std::string&)),
 		this, SLOT(addTower(const std::string&, const std::string&, const std::string&, const std::string&, const std::string&)));
+
+	
 }
 
 void QtGUI_Hybris::addTower(const std::string& location, const std::string& size, const std::string& auraLevel, const std::string& parts, const std::string& vision)
@@ -65,8 +75,8 @@ void QtGUI_Hybris::addTower(const std::string& location, const std::string& size
 	try
 	{
 		this->controller.add(location, size, auraLevel, parts, vision);
-		this->repo.add(Tower({ location, size, auraLevel, parts, vision }));
-		emit this->model->updateModel(TowerModel::UpdateType::add);
+		//this->repo.add(Tower({ location, size, auraLevel, parts, vision }));
+		//emit this->model->updateModel(TowerModel::UpdateType::add);
 	}
 	catch (const std::exception& e)
 	{
@@ -76,6 +86,7 @@ void QtGUI_Hybris::addTower(const std::string& location, const std::string& size
 		return;
 	}
 	emit towersUpdateSignal();
+	this->model->update();
 }
 
 void QtGUI_Hybris::populateTowerList(const std::string& filterSize)
@@ -148,8 +159,8 @@ void QtGUI_Hybris::deleteTowerHandler()
 	try 
 	{
 		this->controller.remove(item->get_location());
-		this->repo.remove(item->get_location());
-		emit this->model->updateModel(TowerModel::UpdateType::remove);
+		//this->repo.remove(item->get_location());
+		//emit this->model->updateModel(TowerModel::UpdateType::remove);
 	}
 	catch (const std::exception& e)
 	{
@@ -160,6 +171,7 @@ void QtGUI_Hybris::deleteTowerHandler()
 	}
 	emit towersUpdateSignal();
 	emit savedUpdateSignal();
+	this->model->update();
 }
 
 void QtGUI_Hybris::updateTowerHandler()
@@ -172,7 +184,7 @@ void QtGUI_Hybris::updateTowerHandler()
 	try
 	{
 		this->controller.update(location.toStdString(), size.toStdString(), level.toStdString(), parts.toStdString(), vision.toStdString());
-		this->repo.update(Tower({ location.toStdString(), size.toStdString(), level.toStdString(), parts.toStdString(), vision.toStdString() }));
+		//this->repo.update(Tower({ location.toStdString(), size.toStdString(), level.toStdString(), parts.toStdString(), vision.toStdString() }));
 	}
 	catch (const std::exception& e)
 	{
@@ -181,9 +193,10 @@ void QtGUI_Hybris::updateTowerHandler()
 		//this->errorMessageBox->exec();
 		return;
 	}
-	emit this->model->updateModel(TowerModel::UpdateType::update);
+	//emit this->model->updateModel(TowerModel::UpdateType::update);
 	emit towersUpdateSignal();
 	emit savedUpdateSignal();
+	this->model->update();
 }
 
 void QtGUI_Hybris::saveTowerHandler()
@@ -228,3 +241,49 @@ void QtGUI_Hybris::changedTabHandler(const int& tab)
 		break;
 	}
 }
+
+void QtGUI_Hybris::undoHandler()
+{
+	try
+	{
+		this->controller.undo();
+	}
+	catch (const std::exception& e)
+	{
+		QMessageBox::critical(0, "Error", e.what());
+	}
+	this->populateSavedList();
+	this->populateTowerList();
+	this->model->update();
+}
+
+void QtGUI_Hybris::redoHandler()
+{
+	try
+	{
+		this->controller.redo();
+	}
+	catch (const std::exception& e)
+	{
+		QMessageBox::critical(0, "Error", e.what());
+	}
+	this->populateSavedList();
+	this->populateTowerList();
+	this->model->update();
+}
+
+//void QtGUI_Hybris::keyPressEvent(QKeyEvent* myEvent)
+//{
+//	if ((myEvent->modifiers() & Qt::ControlModifier) != false)
+//		switch (myEvent->key())
+//		{
+//		case Qt::Key_Z:
+//			this->undoHandler();
+//			break;
+//		case Qt::Key_Y:
+//			this->redoHandler();
+//			break;
+//		default:
+//			break;
+//		}
+//}

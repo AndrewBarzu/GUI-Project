@@ -37,15 +37,19 @@ private:
 	Controller controller;
 	TowerModel* model;
 	QSortFilterProxyModel* filter;
+	QShortcut* undo;
+	QShortcut* redo;
 
-	RepoInMemory repo;
+	//RepoInMemory repo;
 
 	GUICharter* charter;
 
 	void initGUI();
 	void connectSignalsAndSlots();
-	void populateTowerList(const std::string& sizeFilter);
+	void populateTowerList(const std::string& sizeFilter = "");
 	void populateSavedList();
+
+	//void keyPressEvent(QKeyEvent* myEvent);
 
 	void addTowerHandler();
 	void deleteTowerHandler();
@@ -53,6 +57,8 @@ private:
 	void saveTowerHandler();
 	void filterHandler();
 	void changedTabHandler(const int& tab);
+	void undoHandler();
+	void redoHandler();
 
 signals:
 	void towersUpdateSignal(const std::string& sizeFilter = "");
@@ -60,7 +66,6 @@ signals:
 	void towerAddSignal(const std::string& location, const std::string& size, const std::string& auraLevel, const std::string& parts, const std::string& vision);
 
 
-public slots:
+private slots:
 	void addTower(const std::string& location, const std::string& size, const std::string& auraLevel, const std::string& parts, const std::string& vision);
-
 };

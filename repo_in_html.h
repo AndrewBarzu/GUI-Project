@@ -4,28 +4,21 @@
 class HTMLRepo :
 	public FileRepository
 {
-	class iterator : public FileRepository::iterator
+	class HTMLIterator : public RepoInterface::IteratorInterface
 	{
 	private:
 		std::string filename;
-		Tower current_tower;
-		HTMLRepo& repo;
 	public:
-		iterator(HTMLRepo& container) : repo{ container } {}
-		iterator(std::string filename, HTMLRepo& container, std::string pos = "first");
-		virtual const Tower& operator*() const override;
-		virtual bool operator!=(const RepoInterface::iterator& it) const override;
-		virtual bool operator!=(const iterator it) const;
+		HTMLIterator(const HTMLRepo* container, std::string filename, std::string pos = "first");
+		//HTMLIterator(const std::unique_ptr<IteratorInterface> other);
+		virtual void first() override;
+		virtual const Tower& getTower() const override;
 		virtual bool valid() const override;
-		virtual iterator& operator=(const RepoInterface::iterator& it) override;
-		virtual iterator& operator=(const iterator& it);
-		virtual iterator& operator++() override;
-		virtual iterator& operator++(int) override;
-		//virtual ~iterator();
+		virtual bool Equals(const std::unique_ptr<IteratorInterface> it) const override;
+		virtual void next() override;
+		virtual ~HTMLIterator() {}
 	};
 private:
-	iterator last;
-	iterator first;
 	Tower read_tower(std::istream& is);
 	void write_tower(std::ostream& os, const Tower& tower);
 	void write_to_file(const std::vector<Tower>& towers);
@@ -34,9 +27,10 @@ public:
 	void add(const Tower& tower) override;
 	void remove(const std::string& location) override;
 	void update(const Tower& tower) override;
+	Tower search(const std::string& location) const override;
 	int size() const override;
-	typename iterator& begin();
-	typename iterator& end();
+	std::unique_ptr<RepoInterface::IteratorInterface> begin() const override;
+	std::unique_ptr<RepoInterface::IteratorInterface> end() const override;
 	~HTMLRepo() {};
 
 };

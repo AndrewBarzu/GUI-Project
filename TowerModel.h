@@ -7,11 +7,11 @@ class TowerModel :
 {
 	Q_OBJECT
 private:
-	RepoInMemory& repo;
+	Controller& controller;
 public:
 	enum class UpdateType {add, remove, update};
 
-	TowerModel(RepoInMemory& repo) : repo{ repo } {
+	TowerModel(Controller& controller) : controller{ controller } {
 		QObject::connect(this, &TowerModel::updateModel, this, &TowerModel::updateSlot);
 	}
 
@@ -26,6 +26,7 @@ public:
 	bool insertRows(int position, int rows, const QModelIndex& parentIndex) override;
 
 	bool removeRows(int position, int rows, const QModelIndex& parentIndex) override;
+	void update();
 
 signals:
 	void updateModel(UpdateType = UpdateType::add);

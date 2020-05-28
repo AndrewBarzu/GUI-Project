@@ -127,22 +127,16 @@ void test_repo()
 	repository.add(tower);
 	auto iter = repository.begin();
 	auto last = repository.end();
-	for (iter; iter != last; iter++)
+	for (iter; iter->valid(); iter->next())
 	{
 		continue;
 	}
-	iter = last;
-	for (iter; iter.valid(); iter++)
+	for (iter; iter->valid(); iter->next())
 	{
 		continue;
 	}
-	for (auto it : repository)
-	{
-		continue;
-	}
-	RepoInterface::iterator& it = repository.begin();
-	iter = it;
-	for (it; it != last; ++it)
+	iter->first();
+	for (iter; iter->valid(); iter->next())
 	{
 		continue;
 	}
@@ -197,31 +191,21 @@ void test_file_repo()
 	repository.add(tower);
 	auto iter = repository.begin();
 	auto last = repository.end();
-	for (iter; iter != last; iter++)
+	for (iter; iter->valid(); iter->next())
 	{
 		continue;
 	}
-	iter = last;
-	for (iter; iter.valid(); iter++)
+	for (iter; iter->valid(); iter->next())
 	{
 		continue;
 	}
-	for (auto it : repository)
-	{
-		continue;
-	}
-	RepoInterface::iterator& it = repository.begin();
-	iter = it;
-	for (it; it != last; ++it)
+	iter->first();
+	for (iter; iter->valid(); iter->next())
 	{
 		continue;
 	}
 	repository.update(Tower(params));
 	repository.remove("new location");
-	for (auto it : repository)
-	{
-		continue;
-	}
 	try
 	{
 		repository.remove("new location");
@@ -346,7 +330,7 @@ void test_db_repo()
 			repository.add(tower);
 			assert(false);
 		}
-		catch (const DBException& e)
+		catch (std::exception e)
 		{
 			assert(true);
 		}
@@ -357,41 +341,27 @@ void test_db_repo()
 		repository.add(tower);
 		auto iter = repository.begin();
 		auto last = repository.end();
-		for (iter; iter != last; iter++)
+		for (iter; iter->valid(); iter->next())
 		{
 			continue;
 		}
-		iter = last;
-		for (iter; iter.valid(); iter++)
+		for (iter; iter->valid(); iter->next())
 		{
 			continue;
 		}
-		for (auto it = repository.begin(); it != repository.end(); ++it)
-		{
-			continue;
-		}
-		for (auto iter : repository)
-		{
-			continue;
-		}
-		RepoInterface::iterator& it = repository.begin();
-		iter = it;
-		for (it; it != last; it++)
+		iter->first();
+		for (iter; iter->valid(); iter->next())
 		{
 			continue;
 		}
 		repository.update(Tower(params));
 		repository.remove("new location");
-		for (auto it : repository)
-		{
-			std::cout << it << "\n";
-		}
 		try
 		{
 			repository.remove("new location");
 			assert(false);
 		}
-		catch (const DBException& e)
+		catch (std::exception e)
 		{
 			assert(true);
 		}
@@ -401,7 +371,7 @@ void test_db_repo()
 			repository.update(tower);
 			assert(false);
 		}
-		catch (const DBException& e)
+		catch (std::exception)
 		{
 			assert(true);
 		}
@@ -437,31 +407,21 @@ void test_html()
 	repository.add(tower);
 	auto iter = repository.begin();
 	auto last = repository.end();
-	for (iter; iter != last; iter++)
+	for (iter; iter->valid(); iter->next())
 	{
 		continue;
 	}
-	iter = last;
-	for (iter; iter.valid(); iter++)
+	for (iter; iter->valid(); iter->next())
 	{
 		continue;
 	}
-	for (auto it : repository)
-	{
-		continue;
-	}
-	RepoInterface::iterator& it = repository.begin();
-	iter = it;
-	for (it; it != last; ++it)
+	iter->first();
+	for (iter; iter->valid(); iter->next())
 	{
 		continue;
 	}
 	repository.update(Tower(params));
 	repository.remove("new location");
-	for (auto it : repository)
-	{
-		continue;
-	}
 	try
 	{
 		repository.remove("new location");
