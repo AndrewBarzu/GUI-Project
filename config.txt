@@ -1,0 +1,5 @@
+repository=dbrepo
+saved_list=csvlist
+
+# for repository there are 4 options, namely: "inmemory", "dbrepo", "filerepo", "htmlrepo"
+# for the saved list there are only 3 options: "csvlist", "txtlist", "htmllist"
