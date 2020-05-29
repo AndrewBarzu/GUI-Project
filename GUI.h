@@ -24,6 +24,43 @@ public:
 
 };
 
+class ImageDelegate : public QStyledItemDelegate {
+protected:
+	void paint(QPainter* painter, const QStyleOptionViewItem& opt, const QModelIndex& index) const {
+
+		/*if (opt.state & QStyle::State_Selected) {
+			painter->setBrush(Qt::green);
+		}
+		else {
+			painter->setBrush(Qt::blue);
+		}*/
+		QPixmap image{ index.data().toString() + ".png" };
+
+		painter->drawPixmap(opt.rect, image);
+	}
+};
+
+
+class TestWidget : public QDialog
+{
+private:
+	QTableView* view;
+public:
+	TestWidget(QSortFilterProxyModel* model, QWidget* parent = nullptr) : QDialog{ parent }
+	{
+		QHBoxLayout* layout = new QHBoxLayout(this);
+		this->view = new QTableView;
+		this->view->setModel(model);
+		QHeaderView* verticalHeader = this->view->verticalHeader();
+		verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
+		verticalHeader->setDefaultSectionSize(200);
+		this->view->setColumnWidth(4, 200);
+		layout->addWidget(this->view);
+		this->view->setItemDelegateForColumn(4, new ImageDelegate);
+	}
+};
+
+
 class QtGUI_Hybris : public QMainWindow
 {
 	Q_OBJECT
@@ -40,6 +77,7 @@ private:
 	QShortcut* undo;
 	QShortcut* redo;
 
+	TestWidget* widget;
 	//RepoInMemory repo;
 
 	GUICharter* charter;

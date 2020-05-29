@@ -108,37 +108,18 @@ HTMLRepo::HTMLRepo(std::string filename): FileRepository(filename)
 	else
 		for (auto iter = this->begin(); iter->valid(); iter->next())
 		{
+			this->elements.push_back(iter->getTower());
 			this->mySize += 1;
 		}
 }
 
 void HTMLRepo::add(const Tower& tower)
 {
-	std::ifstream is;
-	is.open(this->filename, std::ios_base::in);
-	Tower readTower;
-	std::string line;
-	std::vector<Tower> towers;
-	for (int i = 0; i < 14; i++)
-	{
-		std::getline(is, line);
-	}
-	while (!is.eof())
-	{
-		std::getline(is, line);
-		if (line == "<tr>")
-		{
-			readTower = read_tower(is);
-			if (readTower.get_location() == tower.get_location())
-				throw std::exception("Element already exists!");
-			towers.push_back(readTower);
-		}
-		else break;
-	}
-	is.close();
-	towers.push_back(tower);
-	this->write_to_file(towers);
-	
+	auto it = std::find_if(this->elements.begin(), this->elements.end(), [tower](const Tower& mytower) {return mytower.get_location() == tower.get_location(); });
+	if (it != this->elements.end())
+		throw std::exception("Element already exists!");
+	this->elements.push_back(tower);
+	this->write_to_file(this->elements);
 	this->mySize++;
 }
 
@@ -146,35 +127,11 @@ void HTMLRepo::add(const Tower& tower)
 /// Returns a 1 if the location does not exist (not a success), 0 otherwise
 void HTMLRepo::remove(const std::string& location)
 {
-	std::ifstream is;
-	std::fstream fs;
-	fs.open(this->filename, std::ios::out | std::ios::app);
-	fs.close();
-	is.open(this->filename, std::ios_base::in);
-	std::vector<Tower> temp;
-	std::string line;
-	Tower tower;
-	for (int i = 0; i < 14; i++)
-	{
-		std::getline(is, line);
-	}
-	while (!is.eof())
-	{
-		std::getline(is, line);
-		if (line == "<tr>")
-		{
-			tower = read_tower(is);
-			temp.push_back(tower);
-		}
-		else break;
-	}
-	is.close();
-	int size;
-	size = temp.size();
-	temp.erase(std::remove_if(temp.begin(), temp.end(), [location](const Tower& tower) { return tower.get_location() == location; }), temp.end());
-	if (temp.size() == size)
+	int oldSize = this->elements.size();
+	this->elements.erase(std::remove_if(this->elements.begin(), this->elements.end(), [location](const Tower& tower) { return tower.get_location() == location; }), this->elements.end());
+	if (this->elements.size() == oldSize)
 		throw std::exception("Tried to remove a non existing element!");
-	this->write_to_file(temp);
+	this->write_to_file(this->elements);
 	this->mySize--;
 	/*bool flag = true;
 	int oldSize = this->elements.size();
@@ -187,60 +144,28 @@ void HTMLRepo::remove(const std::string& location)
 /// Returns a 1 if the location does not exist (not a success), 0 otherwise
 void HTMLRepo::update(const Tower& tower)
 {
-	bool flag = true;
-	std::ifstream is;
-	std::fstream fs;
-	fs.open(this->filename, std::ios::out | std::ios::app);
-	fs.close();
-	is.open(this->filename, std::ios_base::in);
-	std::vector<Tower> temp;
-	std::string line;
-	Tower readTower;
-	for (int i = 0; i < 14; i++)
+	auto it = std::find_if(this->elements.begin(), this->elements.end(), [tower](const Tower& mytower) {return mytower.get_location() == tower.get_location(); });
+	if (it != this->elements.end())
 	{
-		std::getline(is, line);
+		*it = tower;
+		this->write_to_file(this->elements);
+		return;
 	}
-	while (!is.eof())
-	{
-		std::getline(is, line);
-		if (line == "<tr>")
-		{
-			readTower = read_tower(is);
-			temp.push_back(readTower);
-		}
-		else break;
-	}
-	is.close();
-
-	auto it = std::find_if(temp.begin(), temp.end(), [tower](const Tower& otherTower) {return otherTower.get_location() == tower.get_location(); });
-	if (it == temp.end())
-		throw std::exception("Tried to update a non existing element!");
-
-	*it = tower;
-	this->write_to_file(temp);
-	/*for (int i = 0; i < elements.size() && flag; i++)
-	{
-		if (strcmp(this->elements[i].get_location(), params[3]) == 0)
-		{
-			Tower new_tower = Tower(params);
-			elements[i] = new_tower;
-			return 0;
-		}
-	}*/
+	throw std::exception("Tried to update a non existing element!");
 }
 
 Tower HTMLRepo::search(const std::string& location) const
 {
-	for (auto it = this->begin(); it->valid(); it->next())
-		if (it->getTower().get_location() == location)
-			return it->getTower();
+	auto it = std::find_if(this->elements.begin(), this->elements.end(), [location](const Tower& mytower) {return mytower.get_location() == location; });
+	if (it != this->elements.end())
+		return *it;
 	return Tower();
 }
 
 /// Returns the size of the repo
 int HTMLRepo::size() const
 {
-	return this->mySize;
+	return this->elements.size();;
 }
 
 unique_ptr<RepoInterface::IteratorInterface> HTMLRepo::begin() const

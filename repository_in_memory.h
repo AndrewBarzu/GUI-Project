@@ -21,11 +21,10 @@ public:
 		~InMemoryIterator() {}
 	};
 private:
-	std::vector<Tower> elements;
 	friend class TowerModel;
 public:
 
-	RepoInMemory() : elements{ std::vector<Tower>() } {}
+	RepoInMemory() {}
 	void add(const Tower& tower) override;
 	void remove(const std::string& location) override;
 	void update(const Tower& tower) override;

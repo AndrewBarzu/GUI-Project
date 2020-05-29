@@ -2,7 +2,6 @@
 #include "repository.h"
 #include <fstream>
 
-
 class FileRepository :
 	public RepoInterface
 {
@@ -10,9 +9,9 @@ public:
 	class FileIterator : public RepoInterface::IteratorInterface
 	{
 	protected:
-		std::string filename;
+		int currentPos;
 	public:
-		FileIterator(const FileRepository* container, std::string filename, std::string pos = "first");
+		FileIterator(const FileRepository* container, std::string pos = "first");
 		FileIterator(const FileIterator& other);
 		virtual void first() override;
 		virtual const Tower& getTower() const override;
@@ -24,12 +23,16 @@ public:
 protected:
 	std::string filename;
 	int mySize;
+private:
+	void write_to_file();
+	void read_from_file();
 public:
 	FileRepository(std::string filename) : filename{ filename }, mySize{ 0 }
 	{
 		std::fstream fs;
 		fs.open(filename, std::ios::app);
 		fs.close();
+		this->read_from_file();
 	}
 	virtual void add(const Tower& tower) override;
 	virtual void remove(const std::string& location) override;

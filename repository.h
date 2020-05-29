@@ -7,6 +7,8 @@
 
 class RepoInterface
 {
+protected:
+	std::vector<Tower> elements;
 public:
 	class IteratorInterface
 	{
@@ -31,6 +33,7 @@ public:
 	virtual int size() const = 0;
 	virtual std::unique_ptr<IteratorInterface> begin() const = 0;
 	virtual std::unique_ptr<IteratorInterface> end() const = 0;
+	const std::vector<Tower>& getAll() const { return this->elements; }
 	virtual ~RepoInterface() {}
 };
 

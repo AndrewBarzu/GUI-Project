@@ -125,11 +125,13 @@ std::string Controller::list(std::string size)
 std::vector<Tower> Controller::print(std::string size) const
 {
 	std::vector<Tower> vect;
-	for (auto tower = this->repository->begin(); tower->valid(); tower->next())
+	if (size == "")
+		return this->repository->getAll();
+	for (auto tower = this->repository->getAll().begin(); tower != this->repository->getAll().end(); tower++)
 	{
-		if (size == "" || tower->getTower().get_size() == size)
+		if (size == "" || tower->get_size() == size)
 		{
-			vect.push_back(tower->getTower());
+			vect.push_back(*tower);
 		}
 	}
 	return vect;
@@ -153,14 +155,9 @@ void Controller::save(std::string location)
 	}
 	throw std::exception("No tower at given location!");}
 
-std::vector<Tower> Controller::getSaved() const
+const std::vector<Tower>& Controller::getSaved() const
 {
-	std::vector<Tower> vect;
-	for (auto tower = this->saved->begin(); tower->valid(); tower->next())
-	{
-		vect.push_back(tower->getTower());
-	}
-	return vect;
+	return this->saved->getAll();
 }
 
 /// Returns the next entry having a size given in the list command. If the current element is the last, then next goes back to the first one

@@ -27,7 +27,8 @@ protected:
 public:
 	DBRepository(std::string dbname) : db{ dbname }
 	{
-		this->mySize = db.size();
+		this->elements = this->db.get_all();
+		this->mySize = this->elements.size();
 	}
 	virtual void add(const Tower& tower) override;
 	virtual void remove(const std::string& location) override;

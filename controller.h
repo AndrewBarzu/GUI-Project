@@ -48,7 +48,7 @@ public:
 	void mylist() { system(((FileRepository*)this->saved)->get_path().c_str()); }
 	std::vector<Tower> print(std::string size = "") const;
 	void save(std::string location);
-	std::vector<Tower> getSaved() const;
+	const std::vector<Tower>& getSaved() const;
 	std::string next();
 	std::string getMode();
 	void undo();

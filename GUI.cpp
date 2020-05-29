@@ -4,20 +4,6 @@
 #include "setDebugNew.h"
 #define new DEBUG_NEW
 
-class TestWidget : public QDialog
-{
-private:
-	QTableView* view;
-public:
-	TestWidget(QAbstractTableModel* model, QWidget* parent = nullptr): QDialog{parent}
-	{
-		QHBoxLayout* layout = new QHBoxLayout(this);
-		this->view = new QTableView;
-		this->view->setModel(model);
-		layout->addWidget(this->view);
-	}
-};
-
 void QtGUI_Hybris::initGUI()
 {
 	ui.setupUi(this);
@@ -30,13 +16,15 @@ void QtGUI_Hybris::initGUI()
 		this->repo.add(t);
 	}*/
 	this->model = new TowerModel(this->controller);
-	/*this->filter = new QSortFilterProxyModel();
-	this->filter->setSourceModel(model);*/
-	this->ui.towerTableView->setModel(model);
+	this->filter = new QSortFilterProxyModel();
+	this->filter->setSourceModel(model);
+	this->ui.towerTableView->setModel(this->filter);
 	this->ui.towerTableView->verticalHeader()->hide();
 	this->ui.towerTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-	TestWidget* widget = new TestWidget(this->model, this);
+	widget = new TestWidget(this->filter, this);
 	widget->show();
+
+
 	
 	this->undo = new QShortcut(QKeySequence(QKeySequence::Undo), this);
 	this->redo = new QShortcut(QKeySequence(QKeySequence::Redo), this);

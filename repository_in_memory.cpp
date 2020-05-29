@@ -22,7 +22,6 @@ void RepoInMemory::add(const Tower& tower)
 /// Returns a 1 if the location does not exist (not a success), 0 otherwise
 void RepoInMemory::remove(const std::string& location)
 {
-	bool flag = true;
 	int oldSize = this->elements.size();
 	this->elements.erase(std::remove_if(this->elements.begin(), this->elements.end(), [location](const Tower& tower) { return tower.get_location() == location; }), this->elements.end());
 	if (this->elements.size() == oldSize)
@@ -33,20 +32,20 @@ void RepoInMemory::remove(const std::string& location)
 /// Returns a 1 if the location does not exist (not a success), 0 otherwise
 void RepoInMemory::update(const Tower& tower)
 {
-	bool flag = true;
 	auto it = std::find_if(this->elements.begin(), this->elements.end(), [tower](const Tower& mytower) {return mytower.get_location() == tower.get_location(); });
 	if (it != this->elements.end())
 	{
 		*it = tower;
 		return;
 	}
-	throw std::exception("Tried to update a non existing element!");}
+	throw std::exception("Tried to update a non existing element!");
+}
 
 Tower RepoInMemory::search(const std::string& location) const
 {
-	for (auto& tower : this->elements)
-		if (tower.get_location() == location)
-			return tower;
+	auto it = std::find_if(this->elements.begin(), this->elements.end(), [location](const Tower& mytower) {return mytower.get_location() == location; });
+	if (it != this->elements.end())
+		return *it;
 	return Tower();
 }
 
