@@ -6,4 +6,4 @@ It features multiple repository types, from non-persistent in memory allocation 
 "favorites" list, a chart for displaying some statistics and two separate windows that are made using the MVC pattern.
 
 ## TODO:
-### - nuke Service
+* nuke Service
