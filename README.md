@@ -46,3 +46,19 @@ Data is formatted as rows in an html table, pretty printed. All the printing is 
 **_In SQL database:_**
 
 Using sqlite3, stores the data in a local sqlite3 database.
+
+Here are some images taken from the app:
+
+Main window: 
+![Main window](https://github.com/AndrewBarzu/GUI-Project/QTGUI_Images_for_git/Main_window.png)
+
+Size chart: 
+![Size chart](https://github.com/AndrewBarzu/GUI-Project/QTGUI_Images_for_git/Size_chart.png)
+
+Table view: 
+![Table view](https://github.com/AndrewBarzu/GUI-Project/QTGUI_Images_for_git/Table_view.png)
+
+Saved list:
+![Saved list](https://github.com/AndrewBarzu/GUI-Project/QTGUI_Images_for_git/Saved_list_table.png)
+
+
