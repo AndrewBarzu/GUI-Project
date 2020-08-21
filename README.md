@@ -50,15 +50,15 @@ Using sqlite3, stores the data in a local sqlite3 database.
 Here are some images taken from the app:
 
 Main window: 
-![Main window](https://github.com/AndrewBarzu/GUI-Project/QTGUI_Images_for_git/Main_window.png)
+![Main window](https://github.com/AndrewBarzu/GUI-Project/blob/master/QTGUI_Images_for_git/Main_window.png)
 
 Size chart: 
-![Size chart](https://github.com/AndrewBarzu/GUI-Project/QTGUI_Images_for_git/Size_chart.png)
+![Size chart](https://github.com/AndrewBarzu/GUI-Project/blob/master/QTGUI_Images_for_git/Size_chart.png)
 
 Table view: 
-![Table view](https://github.com/AndrewBarzu/GUI-Project/QTGUI_Images_for_git/Table_view.png)
+![Table view](https://github.com/AndrewBarzu/GUI-Project/blob/master/QTGUI_Images_for_git/Table_view.png)
 
 Saved list:
-![Saved list](https://github.com/AndrewBarzu/GUI-Project/QTGUI_Images_for_git/Saved_list_table.png)
+![Saved list](https://github.com/AndrewBarzu/GUI-Project/blob/master/QTGUI_Images_for_git/Saved_list_table.png)
 
 
