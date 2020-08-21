@@ -1,6 +1,6 @@
-## GUI-Project
+# GUI-Project
 
-# Broad description
+## Broad description
 
 This is a GUI project made in c++ with Qt in Windows Visual Studio
 
@@ -8,7 +8,7 @@ This is a C++ GUI project, made with Qt, which allows basic CRUD operations.
 It features multiple repository types, from non-persistent in memory allocation to csv and db repositories. It also contains a
 "favorites" list, a chart for displaying some statistics and two separate windows that are made using the MVC pattern.
 
-# Design Patterns used
+## Design Patterns used
 
 The project makes use of various design patterns, such as: 
 
@@ -27,7 +27,7 @@ Used in the creation of the repositories, they now are easier to traverse making
 Used for creating a debug hook. This was needed because Qt didn't report memory leaks correctly and was triggering false positives, and i really needed to see where my memory leaks happened, so i had to override the "new" keyword with another one defined by me, that would write in logs whenever an object created with that "new" keyword was destroyed.
 Works like a charm!
 
-# Repository types
+## Repository types
 
 The program also makes use of 4 types of repositories, with the same interface, so they can be used interchangeably: 
 
