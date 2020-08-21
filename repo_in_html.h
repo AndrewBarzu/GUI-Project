@@ -28,7 +28,6 @@ public:
 	void remove(const std::string& location) override;
 	void update(const Tower& tower) override;
 	Tower search(const std::string& location) const override;
-	int size() const override;
 	std::unique_ptr<RepoInterface::IteratorInterface> begin() const override;
 	std::unique_ptr<RepoInterface::IteratorInterface> end() const override;
 	~HTMLRepo() {};

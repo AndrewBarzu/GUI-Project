@@ -49,12 +49,6 @@ Tower RepoInMemory::search(const std::string& location) const
 	return Tower();
 }
 
-/// Returns the size of the repo
-int RepoInMemory::size() const
-{
-	return elements.size();
-}
-
 unique_ptr<RepoInterface::IteratorInterface> RepoInMemory::begin() const
 {
 	// TODO: insert return statement here

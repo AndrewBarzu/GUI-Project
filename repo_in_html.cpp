@@ -162,12 +162,6 @@ Tower HTMLRepo::search(const std::string& location) const
 	return Tower();
 }
 
-/// Returns the size of the repo
-int HTMLRepo::size() const
-{
-	return this->elements.size();;
-}
-
 unique_ptr<RepoInterface::IteratorInterface> HTMLRepo::begin() const
 {
 	// TODO: insert return statement here

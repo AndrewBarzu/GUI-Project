@@ -46,14 +46,17 @@ class TestWidget : public QDialog
 private:
 	QTableView* view;
 public:
-	TestWidget(QSortFilterProxyModel* model, QWidget* parent = nullptr) : QDialog{ parent }
+	TestWidget(TowerModel* model, QWidget* parent = nullptr) : QDialog{ parent }
 	{
+		this->setFixedWidth(755);
+		this->setMinimumHeight(500);
 		QHBoxLayout* layout = new QHBoxLayout(this);
 		this->view = new QTableView;
 		this->view->setModel(model);
 		QHeaderView* verticalHeader = this->view->verticalHeader();
 		verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
 		verticalHeader->setDefaultSectionSize(200);
+		verticalHeader->hide();
 		this->view->setColumnWidth(4, 200);
 		layout->addWidget(this->view);
 		this->view->setItemDelegateForColumn(4, new ImageDelegate);
@@ -73,6 +76,7 @@ private:
 
 	Controller controller;
 	TowerModel* model;
+	TowerModel* savedModel;
 	QSortFilterProxyModel* filter;
 	QShortcut* undo;
 	QShortcut* redo;
@@ -97,6 +101,8 @@ private:
 	void changedTabHandler(const int& tab);
 	void undoHandler();
 	void redoHandler();
+
+	void populateLineEdits();
 
 signals:
 	void towersUpdateSignal(const std::string& sizeFilter = "");

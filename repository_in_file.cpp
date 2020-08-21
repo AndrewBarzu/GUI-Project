@@ -92,12 +92,6 @@ Tower FileRepository::search(const std::string& location) const
 	return *it;
 }
 
-/// Returns the size of the repo
-int FileRepository::size() const
-{
-	return this->mySize;
-}
-
 unique_ptr<RepoInterface::IteratorInterface> FileRepository::begin() const
 {
 	// TODO: insert return statement here

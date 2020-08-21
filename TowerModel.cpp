@@ -1,9 +1,8 @@
 #include "TowerModel.h"
-#
 
 int TowerModel::rowCount(const QModelIndex& parent) const
 {
-	return this->controller.size();
+	return this->repo->size();
 }
 
 int TowerModel::columnCount(const QModelIndex& parent) const
@@ -16,10 +15,10 @@ QVariant TowerModel::data(const QModelIndex& index, int role) const
 	int row = index.row();
 	int col = index.column();
 
-	if (row == this->controller.size())
+	if (row == this->repo->size())
 		return QVariant();
 
-	Tower t = this->controller.print()[row];
+	Tower t = this->repo->getAll()[row];
 
 	if (role == Qt::DisplayRole || role == Qt::EditRole)
 	{
@@ -43,7 +42,24 @@ QVariant TowerModel::data(const QModelIndex& index, int role) const
 
 QVariant TowerModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-
+	if (role == Qt::DisplayRole)
+	{
+		switch (section)
+		{
+		case 0:
+			return "Location";
+		case 1:
+			return "Size";
+		case 2:
+			return "Aura level";
+		case 3:
+			return "Parts";
+		case 4:
+			return "Vision";
+		default:
+			break;
+		}
+	}
 	return QVariant();
 }
 
@@ -82,10 +98,10 @@ void TowerModel::updateSlot(TowerModel::UpdateType type)
 	switch (type)
 	{
 	case UpdateType::add:
-		this->insertRow(this->controller.size());
+		this->insertRow(this->repo->size());
 		break;
 	case UpdateType::remove:
-		this->removeRow(this->controller.size() - 1);
+		this->removeRow(this->repo->size() - 1);
 		break;
 	case UpdateType::update:
 		emit layoutAboutToBeChanged();

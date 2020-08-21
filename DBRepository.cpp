@@ -31,11 +31,6 @@ Tower DBRepository::search(const std::string& location) const
 	return Tower();
 }
 
-int DBRepository::size() const
-{
-	return this->elements.size();
-}
-
 std::unique_ptr<RepoInterface::IteratorInterface> DBRepository::begin() const
 {
 	return make_unique<DBIterator>("first", this);

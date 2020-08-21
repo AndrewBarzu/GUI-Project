@@ -30,7 +30,7 @@ public:
 	virtual void remove(const std::string& location) = 0;
 	virtual void update(const Tower& tower) = 0;
 	virtual Tower search(const std::string& location) const = 0;
-	virtual int size() const = 0;
+	int size() const { return this->elements.size(); }
 	virtual std::unique_ptr<IteratorInterface> begin() const = 0;
 	virtual std::unique_ptr<IteratorInterface> end() const = 0;
 	const std::vector<Tower>& getAll() const { return this->elements; }

@@ -10,18 +10,19 @@ void QtGUI_Hybris::initGUI()
 
 	this->charter = new GUICharter();
 	this->ui.tabWidget->insertTab(1, charter, tr("Chart"));
-	/*auto elems = this->controller.print();
-	for (auto t : elems)
-	{
-		this->repo.add(t);
-	}*/
-	this->model = new TowerModel(this->controller);
-	this->filter = new QSortFilterProxyModel();
+	this->model = new TowerModel(this->controller.getRepo());
+	this->savedModel = new TowerModel(this->controller.getSavedList(), this);
+	this->filter = new QSortFilterProxyModel(this);
 	this->filter->setSourceModel(model);
 	this->ui.towerTableView->setModel(this->filter);
 	this->ui.towerTableView->verticalHeader()->hide();
 	this->ui.towerTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-	widget = new TestWidget(this->filter, this);
+	this->filter->setHeaderData(0, Qt::Horizontal, "0");
+	this->filter->setHeaderData(1, Qt::Horizontal, "1");
+	this->filter->setHeaderData(2, Qt::Horizontal, "2");
+	this->filter->setHeaderData(3, Qt::Horizontal, "3");
+	this->filter->setHeaderData(4, Qt::Horizontal, "4");
+	widget = new TestWidget(this->savedModel, this);
 	widget->show();
 
 
@@ -39,6 +40,11 @@ void QtGUI_Hybris::connectSignalsAndSlots()
 {
 	QObject::connect(this, &QtGUI_Hybris::towersUpdateSignal, this, &QtGUI_Hybris::populateTowerList);
 	QObject::connect(this, &QtGUI_Hybris::savedUpdateSignal, this, &QtGUI_Hybris::populateSavedList);
+
+	QObject::connect(this->ui.towerList, &QListWidget::itemSelectionChanged, this, &QtGUI_Hybris::populateLineEdits);
+	QObject::connect(this, &QtGUI_Hybris::mousePressEvent, this->ui.towerList, &QListWidget::clearSelection);
+
+	QObject::connect(this->ui.showListPushButton, &QPushButton::clicked, this->widget, &QDialog::show);
 
 	QObject::connect(this->ui.addButton, &QPushButton::clicked, this, &QtGUI_Hybris::addTowerHandler);
 	QObject::connect(this->ui.deleteButton, &QPushButton::clicked, this, &QtGUI_Hybris::deleteTowerHandler);
@@ -159,6 +165,7 @@ void QtGUI_Hybris::deleteTowerHandler()
 	}
 	emit towersUpdateSignal();
 	emit savedUpdateSignal();
+	this->savedModel->update();
 	this->model->update();
 }
 
@@ -184,6 +191,7 @@ void QtGUI_Hybris::updateTowerHandler()
 	//emit this->model->updateModel(TowerModel::UpdateType::update);
 	emit towersUpdateSignal();
 	emit savedUpdateSignal();
+	this->savedModel->update();
 	this->model->update();
 }
 
@@ -208,6 +216,7 @@ void QtGUI_Hybris::saveTowerHandler()
 	}
 
 	emit savedUpdateSignal();
+	this->savedModel->update();
 }
 
 void QtGUI_Hybris::filterHandler()
@@ -242,6 +251,7 @@ void QtGUI_Hybris::undoHandler()
 	}
 	this->populateSavedList();
 	this->populateTowerList();
+	this->savedModel->update();
 	this->model->update();
 }
 
@@ -257,7 +267,29 @@ void QtGUI_Hybris::redoHandler()
 	}
 	this->populateSavedList();
 	this->populateTowerList();
+	this->savedModel->update();
 	this->model->update();
+}
+
+void QtGUI_Hybris::populateLineEdits()
+{
+	if (this->ui.towerList->selectedItems().size() == 0)
+	{
+		this->ui.locationLineEdit->setText("");
+		this->ui.auraLineEdit->setText("");
+		this->ui.sizeLineEdit->setText("");
+		this->ui.visionLineEdit->setText("");
+		this->ui.partsLineEdit->setText("");
+	}
+	else
+	{
+		auto item = (QTowerListItem*)this->ui.towerList->selectedItems()[0];
+		this->ui.locationLineEdit->setText(item->get_location().c_str());
+		this->ui.auraLineEdit->setText(item->get_aura_level().c_str());
+		this->ui.sizeLineEdit->setText(item->get_size().c_str());
+		this->ui.visionLineEdit->setText(item->get_vision().c_str());
+		this->ui.partsLineEdit->setText(item->get_parts().c_str());
+	}
 }
 
 //void QtGUI_Hybris::keyPressEvent(QKeyEvent* myEvent)

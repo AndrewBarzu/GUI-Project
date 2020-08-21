@@ -27,9 +27,9 @@ private:
 public:
 	Controller(RepoInterface* repository, FileRepository* list) : mode{ 'A' }, iterator{ repository->begin() }, sizeFilter{ "" }, repository{ repository }, saved{ list }{}
 	Controller(const Controller& other): mode{other.mode}, iterator{other.repository->begin()}, sizeFilter{other.sizeFilter}, repository{other.repository}, saved{other.saved} {}
-	void add(std::string location, std::string size, std::string auraLevel, std::string separateParts, std::string vision);
-	void remove(std::string location);
-	void update(std::string location, std::string size, std::string auraLevel, std::string separateParts, std::string vision);
+	virtual void add(std::string location, std::string size, std::string auraLevel, std::string separateParts, std::string vision);
+	virtual void remove(std::string location);
+	virtual void update(std::string location, std::string size, std::string auraLevel, std::string separateParts, std::string vision);
 	int size() const { return this->repository->size(); }
 	virtual void load()
 	{
@@ -51,7 +51,12 @@ public:
 	const std::vector<Tower>& getSaved() const;
 	std::string next();
 	std::string getMode();
-	void undo();
-	void redo();
+	virtual void undo();
+	virtual void redo();
+
+	inline RepoInterface* getRepo() const { return this->repository; }
+
+	inline RepoInterface* getSavedList() const { return this->saved; }
+	virtual ~Controller() {}
 };
 

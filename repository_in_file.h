@@ -38,7 +38,6 @@ public:
 	virtual void remove(const std::string& location) override;
 	virtual void update(const Tower& tower) override;
 	Tower search(const std::string& location) const override;
-	virtual int size() const override;
 	virtual std::unique_ptr<IteratorInterface> begin() const override;
 	virtual std::unique_ptr<IteratorInterface> end() const override;
 	const std::string get_path() { return this->filename; }

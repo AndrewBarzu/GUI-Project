@@ -7,11 +7,11 @@ class TowerModel :
 {
 	Q_OBJECT
 private:
-	Controller& controller;
+	RepoInterface* repo;
 public:
 	enum class UpdateType {add, remove, update};
 
-	TowerModel(Controller& controller) : controller{ controller } {
+	TowerModel(RepoInterface* repo, QObject* parent = nullptr) : repo{ repo }, QAbstractTableModel{ parent } {
 		QObject::connect(this, &TowerModel::updateModel, this, &TowerModel::updateSlot);
 	}
 
